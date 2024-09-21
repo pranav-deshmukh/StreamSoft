@@ -1,0 +1,39 @@
+Client/.next/
+Client/node_modules/
+server/node_modules/
+Client/.env
+server/.env
+
+# dependencies
+Client/node_modules
+Client/.pnp
+Client/.pnp.js
+
+# testing
+Client/coverage
+
+# next.js
+Client/.next/
+Client/out/
+
+# production
+Client/build
+
+# misc
+Client/.DS_Store
+Client/*.pem
+
+# debug
+Client/npm-debug.log*
+Client/yarn-debug.log*
+Client/yarn-error.log*
+
+# local env files
+Client/.env*.local
+
+# vercel
+Client/.vercel
+
+# typescript
+Client/*.tsbuildinfo
+Client/next-env.d.ts
