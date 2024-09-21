@@ -64,7 +64,7 @@ const VideoScreen = () => {
           const dataArray = new Uint8Array(analyser.frequencyBinCount);
           const updateMicLevel = () => {
             analyser.getByteFrequencyData(dataArray);
-            const maxLevel = Math.max(...dataArray);
+            const maxLevel = Math.max(...Array.from(dataArray));
             setMicLevel(maxLevel);
             requestAnimationFrame(updateMicLevel);
           };
