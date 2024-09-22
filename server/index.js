@@ -84,9 +84,9 @@ app.post("/getKey", (req, res) => {
   if (ffmpegProcess) {
     console.log("Restarting FFmpeg with new key...");
     ffmpegProcess.kill("SIGTERM");
-    startFfmpegProcess(key); // Start a new process with the updated key
+    startFfmpegProcess(key);
   } else {
-    startFfmpegProcess(key); // Start FFmpeg if it's not already running
+    startFfmpegProcess(key);
   }
 
   res.status(200).send("Key received");
