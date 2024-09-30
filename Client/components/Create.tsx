@@ -10,30 +10,33 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-// import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 
 export default function Create() {
   const Router = useRouter();
   const [visible, setVisible] = useState(false);
-  //   const [secretKey, setSecretKey] = useState("");
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  //   const handleInputChange = (e) => {
-  //     setSecretKey(e.target.value);
-  //   };
-  //   <label htmlFor="secret-key" className="mt-4">Secret Key:</label>
-  //             <Input
-  //               id="secret-key"
-  //               value={secretKey}
-  //               onChange={handleInputChange}
-  //               placeholder="Enter your secret key"
-  //             />
+  const handleRoute = async () => {
+  if (selectedPlatform) {
+    localStorage.setItem("platform", selectedPlatform);
+    console.log("Selected Platform:", selectedPlatform);
+    Router.push("/stream");
+  } else {
+    console.warn("No platform selected");
+  }
+};
 
-    function handleRoute(){
-        Router.push('/stream');
-    }
 
   return (
     <div className="h-full p-12 flex flex-col gap-6">
@@ -41,17 +44,25 @@ export default function Create() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create a Live Stream</DialogTitle>
-            <DialogDescription>
-              Enter your secret key to start streaming.
+            <DialogDescription className="text-red-400">
+              You have to enter your secret key to start streaming after you continue.
             </DialogDescription>
+            <DialogDescription>
+              Select a platform to stream
+            </DialogDescription>
+            <Select onValueChange={(value) => setSelectedPlatform(value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Platform" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="youtube">Youtube</SelectItem>
+                <SelectItem value="twitch">Twitch</SelectItem>
+              </SelectContent>
+            </Select>
           </DialogHeader>
           <Button
             className="bg-[#1461E1] hover:bg-[#4377cc]"
-            onClick={handleRoute}
-            // onClick={() => {
-            //   // Handle continue action here
-            //   console.log("Secret Key:", secretKey);
-            // }}
+             onClick={handleRoute} disabled={!selectedPlatform}
           >
             Continue
           </Button>
@@ -66,7 +77,7 @@ export default function Create() {
               className="w-[300px] h-[75px] rounded-lg flex justify-between items-center p-2 border-[1.5px] group"
               onMouseEnter={() => setVisible(true)}
               onMouseLeave={() => setVisible(false)}
-              onClick={() => setDialogOpen(true)} // Open dialog on click
+              onClick={() => setDialogOpen(true)}
             >
               <section className="flex gap-4 items-center group-hover:text-[#1461E1]">
                 <section className="text-4xl w-14 h-14 bg-[#E4ECFF] rounded-lg flex justify-center items-center text-[#1461E1]">

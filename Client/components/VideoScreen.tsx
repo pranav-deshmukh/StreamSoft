@@ -19,7 +19,8 @@ const VideoScreen = () => {
   const [micLevel, setMicLevel] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  // const audioOutputRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [platforUrl, setPlatformUrl] = useState('');
 
   useEffect(() => {
     const socketInstance = io("http://localhost:8000");
@@ -37,6 +38,10 @@ const VideoScreen = () => {
       socketInstance.disconnect();
     };
   }, []);
+
+  useEffect(()=>{
+    setPlatformUrl(localStorage.getItem("selectedPlatform")??'');
+  },[])
 
   useEffect(() => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -95,26 +100,30 @@ const VideoScreen = () => {
   };
 
   const startRecording = () => {
-    if (!mediaStream) return;
-
-    const mediaRecorder = new MediaRecorder(mediaStream, {
-      audioBitsPerSecond: 128000,
-      videoBitsPerSecond: 2500000,
-    });
-
-    mediaRecorder.ondataavailable = (event) => {
-      console.log("Binary stream available", event.data);
-      if (socket) {
-        socket.emit("binary stream", event.data);
-      }
-    };
-
-    mediaRecorder.start(25);
-    setIsRecording(true);
-
-    mediaRecorder.onstop = () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
       setIsRecording(false);
-    };
+    } else if (mediaStream) {
+      const mediaRecorder = new MediaRecorder(mediaStream, {
+        audioBitsPerSecond: 128000,
+        videoBitsPerSecond: 2500000,
+      });
+
+      mediaRecorder.ondataavailable = (event) => {
+        console.log("Binary stream available", event.data);
+        if (socket) {
+          socket.emit("binary stream", event.data);
+        }
+      };
+
+      mediaRecorder.start(25);
+      setIsRecording(true);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.onstop = () => {
+        setIsRecording(false);
+      };
+    }
   };
 
   const handleSecretKey = async (secret: string) => {
@@ -137,23 +146,35 @@ const VideoScreen = () => {
         ></video>
 
         <div className="controls mt-4">
-          <Button onClick={startRecording} className="cursor-pointer bg-blue-500 hover:bg-blue-400">
-            {isRecording ? "Streaming..." : "Start Streaming"}
+          <Button
+            disabled={secretKey.length === 0 ? true : false}
+            onClick={startRecording}
+            className={`cursor-pointer ${isRecording?'bg-red-500 hover:bg-red-400':'bg-blue-500 hover:bg-blue-400'}`}
+          >
+            {isRecording ? "Stop Streaming" : "Start Streaming"}
           </Button>
         </div>
 
         <div className="flex gap-4 mt-4">
-          <span onClick={handleMute} className="cursor-pointer text-2xl bg-slate-200 p-2 rounded-full">
+          <span
+            onClick={handleMute}
+            className="cursor-pointer text-2xl bg-slate-200 p-2 rounded-full"
+          >
             {isMuted ? <AiOutlineAudioMuted /> : <AiOutlineAudio />}
           </span>
-          <span onClick={toggleVideo} className="cursor-pointer text-2xl bg-slate-200 p-2 rounded-full">
+          <span
+            onClick={toggleVideo}
+            className="cursor-pointer text-2xl bg-slate-200 p-2 rounded-full"
+          >
             {isVideoOff ? <MdVideocamOff /> : <MdVideocam />}
           </span>
         </div>
       </div>
 
       <div className="flex flex-col gap-4 bg-white p-6 rounded-lg shadow-md">
-        <label htmlFor="secret-key" className="text-gray-600">Secret Key:</label>
+        <label htmlFor="secret-key" className="text-gray-600">
+          Secret Key:
+        </label>
         <Input
           id="secret-key"
           value={secretKey}
