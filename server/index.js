@@ -55,7 +55,7 @@ const createFfmpegOptions = (key) => [
   "44100",
   "-f",
   "flv",
-  `rtmp://a.rtmp.youtube.com/live2/${key}`,
+  `${key}`,
 ];
 
 const startFfmpegProcess = (key) => {

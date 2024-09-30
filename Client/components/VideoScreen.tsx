@@ -5,8 +5,9 @@ import io, { Socket } from "socket.io-client";
 import { AiOutlineAudio, AiOutlineAudioMuted } from "react-icons/ai";
 import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { Input } from "./ui/input";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Button } from "./ui/button";
+import { PlatformStreamUrls } from "@/utils/platform";
 
 const VideoScreen = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -20,7 +21,7 @@ const VideoScreen = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [platforUrl, setPlatformUrl] = useState('');
+  const [platform, setPlatform] = useState('');
 
   useEffect(() => {
     const socketInstance = io("http://localhost:8000");
@@ -40,8 +41,14 @@ const VideoScreen = () => {
   }, []);
 
   useEffect(()=>{
-    setPlatformUrl(localStorage.getItem("selectedPlatform")??'');
+    const Url = localStorage.getItem("platform")??''
+    setPlatform(Url);
   },[])
+  
+  useEffect(()=>{
+    console.log(PlatformStreamUrls[platform]+secretKey)
+
+  },[platform, secretKey])
 
   useEffect(() => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -127,10 +134,18 @@ const VideoScreen = () => {
   };
 
   const handleSecretKey = async (secret: string) => {
-    const response = await axios.post("http://localhost:8000/getKey", {
-      key: secret,
-    });
-    console.log(response);
+    try {
+      if(platform){
+
+        const response = await axios.post("http://localhost:8000/getKey", {
+          key: PlatformStreamUrls[platform]+secret,
+        });
+        console.log(response);
+      }
+      
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
