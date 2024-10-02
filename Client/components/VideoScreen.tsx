@@ -11,6 +11,7 @@ import { PlatformStreamUrls } from "@/utils/platform";
 
 const VideoScreen = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const screenShareRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -22,6 +23,8 @@ const VideoScreen = () => {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [platform, setPlatform] = useState('');
+  const [screenStream, setScreenStream] = useState<MediaStream|null>(null)
+  
 
   useEffect(() => {
     const socketInstance = io("http://localhost:8000");
@@ -45,10 +48,10 @@ const VideoScreen = () => {
     setPlatform(Url);
   },[])
   
-  useEffect(()=>{
-    console.log(PlatformStreamUrls[platform]+secretKey)
+  // useEffect(()=>{
+  //   console.log(PlatformStreamUrls[platform]+secretKey)
 
-  },[platform, secretKey])
+  // },[platform, secretKey])
 
   useEffect(() => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -148,17 +151,49 @@ const VideoScreen = () => {
     }
   };
 
+  const shareScreen = async () => {
+  try {
+    const screen = await navigator.mediaDevices.getDisplayMedia({
+      video: true, 
+      audio: true // Adjust if you don't want to share audio
+    });
+    
+    setScreenStream(screen);
+
+    if (screenShareRef.current) {
+      // Stop any existing screen streams if they exist
+      if (screenShareRef.current.srcObject) {
+        (screenShareRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+      }
+      // Attach the new screen stream
+      screenShareRef.current.srcObject = screen;
+    }
+
+    // Optional: handle when the screen sharing stops
+    screen.getVideoTracks()[0].addEventListener('ended', () => {
+      console.log('Screen sharing stopped');
+      if (screenShareRef.current) {
+        screenShareRef.current.srcObject = null;
+      }
+    });
+
+  } catch (error) {
+    console.error("Error starting screen sharing:", error);
+  }
+};
+
+
   return (
     <div className="w-full h-full flex justify-evenly items-center gap-6 p-6 bg-gray-100">
       <div className="flex flex-col gap-5 justify-center items-center bg-white p-6 rounded-lg shadow-md">
-        <video
+        {/* <video
           ref={videoRef}
           autoPlay
           muted={isVideoOff}
           width={"450px"}
           height={"450px"}
           className="user-video rounded-xl shadow-lg"
-        ></video>
+        ></video> */}
 
         <div className="controls mt-4">
           <Button
@@ -185,6 +220,8 @@ const VideoScreen = () => {
           </span>
         </div>
       </div>
+      <button onClick={shareScreen}>Start Screen Sharing</button>
+      
 
       <div className="flex flex-col gap-4 bg-white p-6 rounded-lg shadow-md">
         <label htmlFor="secret-key" className="text-gray-600">
