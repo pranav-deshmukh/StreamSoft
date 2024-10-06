@@ -24,6 +24,8 @@ const VideoScreen = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [platform, setPlatform] = useState('');
   const [screenStream, setScreenStream] = useState<MediaStream|null>(null)
+  const [shareScreenState, setShareScreenState] = useState(false);
+  const [name, setName] = useState('')
   
 
   useEffect(() => {
@@ -153,28 +155,31 @@ const VideoScreen = () => {
 
   const shareScreen = async () => {
   try {
+    setShareScreenState(true);
     const screen = await navigator.mediaDevices.getDisplayMedia({
       video: true, 
-      audio: true // Adjust if you don't want to share audio
+      audio: true 
     });
     
     setScreenStream(screen);
 
     if (screenShareRef.current) {
-      // Stop any existing screen streams if they exist
+
       if (screenShareRef.current.srcObject) {
         (screenShareRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
       }
-      // Attach the new screen stream
+
       screenShareRef.current.srcObject = screen;
     }
 
-    // Optional: handle when the screen sharing stops
+
     screen.getVideoTracks()[0].addEventListener('ended', () => {
       console.log('Screen sharing stopped');
       if (screenShareRef.current) {
         screenShareRef.current.srcObject = null;
       }
+      setScreenStream(null);
+      setShareScreenState(false);
     });
 
   } catch (error) {
@@ -186,15 +191,25 @@ const VideoScreen = () => {
   return (
     <div className="w-full h-full flex justify-evenly items-center gap-6 p-6 bg-gray-100">
       <div className="flex flex-col gap-5 justify-center items-center bg-white p-6 rounded-lg shadow-md">
-        {/* <video
+      <div className="relative min-w-[550px] min-h-[400px]">
+        {shareScreenState&&(
+          
+      <video ref={screenShareRef} autoPlay
+          width={"800px"}
+          height={"700px"}
+          className="user-video rounded-xl shadow-lg"/>
+      )}
+         <video
           ref={videoRef}
           autoPlay
           muted={isVideoOff}
-          width={"450px"}
-          height={"450px"}
-          className="user-video rounded-xl shadow-lg"
-        ></video> */}
-
+          width={`${shareScreenState?"80px":"550px"}`}
+          height={"550px"}
+          className={`user-video rounded-xl shadow-lg ${shareScreenState?"absolute top-0 left-0":""}`}
+          />
+        {/* <span className="absolute bottom-0 left-0 bg-yellow-600 p-2 min-w-[80px] text-center font-bold text-white">{name}</span> */}
+      </div>
+          
         <div className="controls mt-4">
           <Button
             disabled={secretKey.length === 0 ? true : false}
@@ -218,9 +233,10 @@ const VideoScreen = () => {
           >
             {isVideoOff ? <MdVideocamOff /> : <MdVideocam />}
           </span>
+          <Button onClick={shareScreen}>Start Screen Sharing</Button>
         </div>
       </div>
-      <button onClick={shareScreen}>Start Screen Sharing</button>
+      
       
 
       <div className="flex flex-col gap-4 bg-white p-6 rounded-lg shadow-md">
@@ -253,6 +269,8 @@ const VideoScreen = () => {
             ></div>
           </div>
         </div>
+        <Input placeholder="Enter your display name" id="name" value={name} onChange={(e)=>setName(e.target.value)}></Input>
+        <Button>Select Name</Button>
       </div>
     </div>
   );
