@@ -24,7 +24,7 @@ const VideoScreen = () => {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [platform, setPlatform] = useState('');
-  const [screenStream, setScreenStream] = useState<MediaStream|null>(null)
+  // const [screenStream, setScreenStream] = useState<MediaStream|null>(null)
   const [shareScreenState, setShareScreenState] = useState(false);
   const [name, setName] = useState('')
   
@@ -144,7 +144,7 @@ const VideoScreen = () => {
       if(platform){
 
         const response = await axios.post("http://localhost:8000/getKey", {
-          key: PlatformStreamUrls[platform]+secret,
+          key: PlatformStreamUrls[platform as keyof typeof PlatformStreamUrls] + secret,
         });
         toast.success("Key sent");
         console.log(response);
@@ -164,7 +164,7 @@ const VideoScreen = () => {
       audio: true 
     });
     
-    setScreenStream(screen);
+    // setScreenStream(screen);
 
     if (screenShareRef.current) {
 
@@ -181,7 +181,7 @@ const VideoScreen = () => {
       if (screenShareRef.current) {
         screenShareRef.current.srcObject = null;
       }
-      setScreenStream(null);
+      // setScreenStream(null);
       setShareScreenState(false);
     });
 

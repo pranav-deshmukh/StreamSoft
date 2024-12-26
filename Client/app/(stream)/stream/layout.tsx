@@ -1,4 +1,4 @@
-import Navigation from "@/components/Navigation";
+// import Navigation from "@/components/Navigation";
 import TitleBar from "@/components/TitleBar";
 import { ReactNode } from "react";
 
