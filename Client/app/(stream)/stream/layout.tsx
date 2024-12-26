@@ -11,9 +11,9 @@ export default function Layout({ children }: LayoutProps) {
     <div className="w-screen h-screen flex flex-col">
       <TitleBar />
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-1/6 h-full overflow-auto">
+        {/* <div className="w-1/6 h-full overflow-auto">
           <Navigation />
-        </div>
+        </div> */}
         <div className="flex-1 overflow-auto">
           {children}
         </div>

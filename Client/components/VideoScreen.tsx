@@ -5,7 +5,7 @@ import io, { Socket } from "socket.io-client";
 import { AiOutlineAudio, AiOutlineAudioMuted } from "react-icons/ai";
 import { MdVideocam, MdVideocamOff } from "react-icons/md";
 import { Input } from "./ui/input";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { Button } from "./ui/button";
 import { PlatformStreamUrls } from "@/utils/platform";
 import {Toaster, toast} from "sonner";

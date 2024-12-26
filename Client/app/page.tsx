@@ -3,19 +3,19 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="bg-[#F2F2FD] h-screen flex flex-col items-center pt-4">
-      <nav className="bg-[#ffffff] p-4 w-[97%] text-[#565E6C] flex justify-between items-center">
+    <div className="bg-[#ececf4] h-screen flex flex-col items-center pt-4">
+      <nav className="bg-[#ffffff] p-4 w-[97%] text-[#565E6C] flex justify-between items-center rounded-lg">
         <h1 className="text-2xl font-bold text-[#333333]">StreamSoft</h1>
         <ul className="flex space-x-8 text-sm font-bold">
-          <li>
+          <li className="hover:underline">
             <Link href="https://x.com/res_send_pranav">Twitter</Link>
           </li>
-          <li>
+          <li className="hover:underline">
             <Link href="https://www.linkedin.com/in/pranavdeshmukh910/">
               LinkedIn
             </Link>
           </li>
-          <li>
+          <li className="hover:underline">
             <Link href="https://github.com/pranav-deshmukh">Github</Link>
           </li>
         </ul>
@@ -31,7 +31,7 @@ export default function Home() {
             Twitch, ...
           </h2>
         </text>
-        <Button className="bg-blue-500 hover:bg-blue-600"><Link href='/dashboard'>Get started - it&apos;s free</Link></Button>
+        <Button className="bg-blue-600 hover:bg-blue-700 p-6 text-md font-semibold"><Link href='/dashboard'>Get started - it&apos;s free!</Link></Button>
       </section>
     </div>
   );

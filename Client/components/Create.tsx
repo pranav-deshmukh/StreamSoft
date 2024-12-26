@@ -39,7 +39,7 @@ export default function Create() {
 
 
   return (
-    <div className="h-full p-12 flex flex-col gap-6">
+    <div className=" p-12 flex flex-col gap-6">
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
