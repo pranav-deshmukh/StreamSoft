@@ -11,4 +11,4 @@ services:
       - .:/app  
     environment:
       NODE_ENV: development  
-    command: ["node", "index.js"] 
+    command: ["npx", "nodemon", "index.js"] 

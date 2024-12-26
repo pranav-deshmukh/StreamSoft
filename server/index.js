@@ -59,21 +59,25 @@ const createFfmpegOptions = (key) => [
 ];
 
 const startFfmpegProcess = (key) => {
-  const options = createFfmpegOptions(key);
-  ffmpegProcess = spawn("ffmpeg", options);
+  try {
+    const options = createFfmpegOptions(key);
+    ffmpegProcess = spawn("ffmpeg", options);
 
-  ffmpegProcess.stdout.on("data", (data) => {
-    console.log(`ffmpeg stdout: ${data}`);
-  });
+    ffmpegProcess.stdout.on("data", (data) => {
+      console.log(`ffmpeg stdout: ${data}`);
+    });
 
-  ffmpegProcess.stderr.on("data", (data) => {
-    console.error(`ffmpeg stderr: ${data}`);
-  });
+    ffmpegProcess.stderr.on("data", (data) => {
+      console.error(`ffmpeg stderr: ${data}`);
+    });
 
-  ffmpegProcess.on("close", (code) => {
-    console.log(`ffmpeg process exited with code: ${code}`);
-    ffmpegProcess = null;
-  });
+    ffmpegProcess.on("close", (code) => {
+      console.log(`ffmpeg process exited with code: ${code}`);
+      ffmpegProcess = null;
+    });
+  } catch (error) {
+    console.log("Error", error);
+  }
 };
 
 app.post("/getKey", (req, res) => {

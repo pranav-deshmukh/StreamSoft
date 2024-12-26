@@ -8,6 +8,7 @@ import { Input } from "./ui/input";
 import axios, { AxiosError } from "axios";
 import { Button } from "./ui/button";
 import { PlatformStreamUrls } from "@/utils/platform";
+import {Toaster, toast} from "sonner";
 
 const VideoScreen = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -145,10 +146,12 @@ const VideoScreen = () => {
         const response = await axios.post("http://localhost:8000/getKey", {
           key: PlatformStreamUrls[platform]+secret,
         });
+        toast.success("Key sent");
         console.log(response);
       }
       
     } catch (error) {
+      toast.error("Failed to send key");
       console.log(error);
     }
   };
@@ -190,6 +193,7 @@ const VideoScreen = () => {
 
   return (
     <div className="w-full h-full flex justify-evenly items-center gap-6 p-6 bg-gray-100">
+      <Toaster richColors closeButton position="top-center" theme="light" />
       <div className="flex flex-col gap-5 justify-center items-center bg-white p-6 rounded-lg shadow-md">
       <div className="relative min-w-[550px] min-h-[400px]">
         {shareScreenState&&(
