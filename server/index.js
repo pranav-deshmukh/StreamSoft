@@ -8,42 +8,41 @@ import { Server as SocketIo } from "socket.io";
 const app = express();
 const server = http.createServer(app);
 
-// Define state object
-const state = { key: null };
-
-// Define allowed origins with proper protocols
+// Define allowed origins - make sure to include all variations of your Vercel domain
 const allowedOrigins = [
   "http://localhost:3000",
   "https://streamsoft-streamsoft-deploy.up.railway.app",
   "https://stream-soft-git-main-pranav-deshmukhs-projects.vercel.app",
+  "https://stream-soft.vercel.app", // Add your main Vercel domain if different
 ];
 
-// Configure CORS with dynamic origin checking
+// Enable pre-flight requests for all routes
+app.options("*", cors());
+
+// Configure CORS
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    console.log("Incoming origin:", origin);
 
-    // Log attempted connection origin for debugging
-    console.log("Connection attempt from origin:", origin);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log("Origin rejected by CORS:", origin);
-      callback(new Error("Not allowed by CORS"));
+      console.log("Rejected origin:", origin);
+      callback(new Error("CORS not allowed"));
     }
   },
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Configure Socket.IO with matching CORS settings
+// Configure Socket.IO
 const io = new SocketIo(server, {
   cors: {
     origin: allowedOrigins,
@@ -52,6 +51,8 @@ const io = new SocketIo(server, {
     credentials: true,
   },
   transports: ["websocket", "polling"],
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
 let ffmpegProcess = null;
