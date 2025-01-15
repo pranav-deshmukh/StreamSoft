@@ -9,39 +9,19 @@ const app = express();
 const server = http.createServer(app);
 app.use(express.json());
 
-// CORS configuration
-const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      "http://localhost:3000", // Add your frontend URL here
-      "https://your-production-url.com",
-    ];
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS policy: Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
-
 const state = { key: "your-initial-key-here" };
 
 const io = new SocketIo(server, {
   cors: {
-    origin: "http://localhost:3000", // Update for production if necessary
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   },
 });
 
 let ffmpegProcess = null;
+app.use(cors());
 
-// Create FFmpeg options
 const createFfmpegOptions = (key) => [
   "-i",
   "-",
@@ -78,7 +58,6 @@ const createFfmpegOptions = (key) => [
   `${key}`,
 ];
 
-// Start FFmpeg process
 const startFfmpegProcess = (key) => {
   try {
     const options = createFfmpegOptions(key);
@@ -97,11 +76,10 @@ const startFfmpegProcess = (key) => {
       ffmpegProcess = null;
     });
   } catch (error) {
-    console.error("Error starting FFmpeg process:", error);
+    console.log("Error", error);
   }
 };
 
-// Handle key change request
 app.post("/getKey", (req, res) => {
   const key = req.body.key;
   console.log("Received key:", key);
@@ -118,7 +96,6 @@ app.post("/getKey", (req, res) => {
   res.status(200).send("Key received");
 });
 
-// Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("Socket Connected", socket.id);
 
@@ -129,8 +106,6 @@ io.on("connection", (socket) => {
       ffmpegProcess.stdin.write(stream, (err) => {
         if (err) {
           console.error("Error writing stream to FFmpeg:", err);
-        } else {
-          console.log("Stream successfully written to FFmpeg");
         }
       });
     } else {
@@ -139,22 +114,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Serve static files
 app.use(express.static(path.resolve("./public")));
 
-// Graceful shutdown handling
-process.on("SIGINT", () => {
-  if (ffmpegProcess) {
-    ffmpegProcess.kill("SIGTERM");
-    console.log("FFmpeg process terminated gracefully.");
-  }
-  server.close(() => {
-    console.log("Server closed.");
-    process.exit(0);
-  });
-});
-
-// Start the server
 server.listen(8000, () => {
   console.log(`Server running on port 8000`);
 });
