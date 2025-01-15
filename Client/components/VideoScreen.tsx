@@ -8,7 +8,7 @@ import { Input } from "./ui/input";
 import axios from "axios";
 import { Button } from "./ui/button";
 import { PlatformStreamUrls } from "@/utils/platform";
-import {Toaster, toast} from "sonner";
+import { Toaster, toast } from "sonner";
 
 const VideoScreen = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -23,14 +23,23 @@ const VideoScreen = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [platform, setPlatform] = useState('');
+  const [platform, setPlatform] = useState("");
   // const [screenStream, setScreenStream] = useState<MediaStream|null>(null)
   const [shareScreenState, setShareScreenState] = useState(false);
-  const [name, setName] = useState('')
-  
+  const [name, setName] = useState("");
 
   useEffect(() => {
-    const socketInstance = io(`${process.env.NEXT_PUBLIC_SERVER_URL}/getKey`);
+    const socketInstance = io(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}`,
+      {
+        withCredentials: true,
+        transports: ["websocket", "polling"],
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      }
+    );
     setSocket(socketInstance);
 
     socketInstance.on("connect", () => {
@@ -46,11 +55,11 @@ const VideoScreen = () => {
     };
   }, []);
 
-  useEffect(()=>{
-    const Url = localStorage.getItem("platform")??''
+  useEffect(() => {
+    const Url = localStorage.getItem("platform") ?? "";
     setPlatform(Url);
-  },[])
-  
+  }, []);
+
   // useEffect(()=>{
   //   console.log(PlatformStreamUrls[platform]+secretKey)
 
@@ -141,15 +150,19 @@ const VideoScreen = () => {
 
   const handleSecretKey = async (secret: string) => {
     try {
-      if(platform){
-        console.log(`${process.env.NEXT_PUBLIC_SERVER_URL}`)
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/getKey`, {
-          key: PlatformStreamUrls[platform as keyof typeof PlatformStreamUrls] + secret,
-        });
+      if (platform) {
+        console.log(`${process.env.NEXT_PUBLIC_SERVER_URL}`);
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/getKey`,
+          {
+            key:
+              PlatformStreamUrls[platform as keyof typeof PlatformStreamUrls] +
+              secret,
+          }
+        );
         toast.success("Key sent");
         console.log(response);
       }
-      
     } catch (error) {
       toast.error("Failed to send key");
       console.log(error);
@@ -157,68 +170,74 @@ const VideoScreen = () => {
   };
 
   const shareScreen = async () => {
-  try {
-    setShareScreenState(true);
-    const screen = await navigator.mediaDevices.getDisplayMedia({
-      video: true, 
-      audio: true 
-    });
-    
-    // setScreenStream(screen);
+    try {
+      setShareScreenState(true);
+      const screen = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
 
-    if (screenShareRef.current) {
+      // setScreenStream(screen);
 
-      if (screenShareRef.current.srcObject) {
-        (screenShareRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-      }
-
-      screenShareRef.current.srcObject = screen;
-    }
-
-
-    screen.getVideoTracks()[0].addEventListener('ended', () => {
-      console.log('Screen sharing stopped');
       if (screenShareRef.current) {
-        screenShareRef.current.srcObject = null;
+        if (screenShareRef.current.srcObject) {
+          (screenShareRef.current.srcObject as MediaStream)
+            .getTracks()
+            .forEach((track) => track.stop());
+        }
+
+        screenShareRef.current.srcObject = screen;
       }
-      // setScreenStream(null);
-      setShareScreenState(false);
-    });
 
-  } catch (error) {
-    console.error("Error starting screen sharing:", error);
-  }
-};
-
+      screen.getVideoTracks()[0].addEventListener("ended", () => {
+        console.log("Screen sharing stopped");
+        if (screenShareRef.current) {
+          screenShareRef.current.srcObject = null;
+        }
+        // setScreenStream(null);
+        setShareScreenState(false);
+      });
+    } catch (error) {
+      console.error("Error starting screen sharing:", error);
+    }
+  };
 
   return (
     <div className="w-full h-full flex justify-evenly items-center gap-6 p-6 bg-gray-100">
       <Toaster richColors closeButton position="top-center" theme="light" />
       <div className="flex flex-col gap-5 justify-center items-center bg-white p-6 rounded-lg shadow-md">
-      <div className="relative min-w-[550px] min-h-[400px]">
-        {shareScreenState&&(
-          
-      <video ref={screenShareRef} autoPlay
-          width={"800px"}
-          height={"700px"}
-          className="user-video rounded-xl shadow-lg"/>
-      )}
-         <video
-          ref={videoRef}
-          autoPlay
-          muted={isVideoOff}
-          width={`${shareScreenState?"80px":"550px"}`}
-          height={"550px"}
-          className={`user-video rounded-xl shadow-lg ${shareScreenState?"absolute top-0 left-0":""}`}
+        <div className="relative min-w-[550px] min-h-[400px]">
+          {shareScreenState && (
+            <video
+              ref={screenShareRef}
+              autoPlay
+              width={"800px"}
+              height={"700px"}
+              className="user-video rounded-xl shadow-lg"
+            />
+          )}
+          <video
+            ref={videoRef}
+            autoPlay
+            muted={isVideoOff}
+            width={`${shareScreenState ? "80px" : "550px"}`}
+            height={"550px"}
+            className={`user-video rounded-xl shadow-lg ${
+              shareScreenState ? "absolute top-0 left-0" : ""
+            }`}
           />
-        {/* <span className="absolute bottom-0 left-0 bg-yellow-600 p-2 min-w-[80px] text-center font-bold text-white">{name}</span> */}
-      </div>
-          
+          {/* <span className="absolute bottom-0 left-0 bg-yellow-600 p-2 min-w-[80px] text-center font-bold text-white">{name}</span> */}
+        </div>
+
         <div className="controls mt-4">
           <Button
             disabled={secretKey.length === 0 ? true : false}
             onClick={startRecording}
-            className={`cursor-pointer ${isRecording?'bg-red-500 hover:bg-red-400':'bg-blue-500 hover:bg-blue-400'}`}
+            className={`cursor-pointer ${
+              isRecording
+                ? "bg-red-500 hover:bg-red-400"
+                : "bg-blue-500 hover:bg-blue-400"
+            }`}
           >
             {isRecording ? "Stop Streaming" : "Start Streaming"}
           </Button>
@@ -240,8 +259,6 @@ const VideoScreen = () => {
           <Button onClick={shareScreen}>Start Screen Sharing</Button>
         </div>
       </div>
-      
-      
 
       <div className="flex flex-col gap-4 bg-white p-6 rounded-lg shadow-md">
         <label htmlFor="secret-key" className="text-gray-600">
@@ -265,7 +282,9 @@ const VideoScreen = () => {
         </span>
 
         <div className="mic-settings mt-6 flex flex-col items-center">
-          <label className="text-gray-600 mb-2">Mic Level: {Math.floor(micLevel)}</label>
+          <label className="text-gray-600 mb-2">
+            Mic Level: {Math.floor(micLevel)}
+          </label>
           <div className="w-4 h-40 bg-gray-200 rounded-lg relative">
             <div
               className="bg-blue-500 w-full absolute bottom-0 rounded-lg transition-all duration-300"
@@ -273,7 +292,12 @@ const VideoScreen = () => {
             ></div>
           </div>
         </div>
-        <Input placeholder="Enter your display name" id="name" value={name} onChange={(e)=>setName(e.target.value)}></Input>
+        <Input
+          placeholder="Enter your display name"
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        ></Input>
         <Button>Select Name</Button>
       </div>
     </div>

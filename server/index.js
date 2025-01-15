@@ -8,24 +8,46 @@ import { Server as SocketIo } from "socket.io";
 const app = express();
 const server = http.createServer(app);
 
-// Define CORS configuration
+// Define allowed origins
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://streamsoft-streamsoft-deploy.up.railway.app",
+  // Add your production frontend URL if different
+];
+
+// Configure CORS with dynamic origin checking
 const corsOptions = {
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 
-// Apply CORS middleware with options
+// Apply CORS middleware
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const state = { key: "your-initial-key-here" };
-
-// Configure Socket.IO with the same CORS options
+// Configure Socket.IO with matching CORS settings
 const io = new SocketIo(server, {
-  cors: corsOptions,
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  },
+  transports: ["websocket", "polling"],
 });
+
+// Rest of your existing code...
 
 let ffmpegProcess = null;
 
