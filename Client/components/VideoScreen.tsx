@@ -30,7 +30,7 @@ const VideoScreen = () => {
 
   useEffect(() => {
     const socketInstance = io(
-      `${process.env.NEXT_PUBLIC_SERVER_URL}`,
+      `https://streamsoft-streamsoft-deploy.up.railway.app`,
       {
         withCredentials: true,
         transports: ["websocket", "polling"],
@@ -153,7 +153,7 @@ const VideoScreen = () => {
       if (platform) {
         console.log(`${process.env.NEXT_PUBLIC_SERVER_URL}`);
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/getKey`,
+          `https://streamsoft-streamsoft-deploy.up.railway.app/getKey`,
           {
             key:
               PlatformStreamUrls[platform as keyof typeof PlatformStreamUrls] +
