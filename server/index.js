@@ -12,6 +12,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:3000",
   "https://streamsoft-streamsoft-deploy.up.railway.app",
+  "stream-soft-git-main-pranav-deshmukhs-projects.vercel.app",
   // Add your production frontend URL if different
 ];
 
