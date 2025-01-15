@@ -64,7 +64,7 @@ export default function Signup() {
       console.log(send);
       try {
         const response = await axios.post(
-          "http://localhost:3000/api/v1/users/signup",
+          `${process.env.SERVER_URL}/signup`,
           send
         );
         console.log(response.data);

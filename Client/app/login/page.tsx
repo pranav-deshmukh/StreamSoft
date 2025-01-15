@@ -45,7 +45,7 @@ export default function Login() {
 
       try {
         const response = await axios.post(
-          "http://localhost:3000/api/v1/users/login",
+          `${process.env.SERVER_URL}/login`,
           send
         );
         console.log(response.data);
@@ -71,7 +71,7 @@ export default function Login() {
   });
   const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
     formik;
-
+  console.log(process.env.SERVER_URL);
   return (
     <div className="flex justify-center items-center flex-col h-screen">
       <Toaster richColors closeButton position="top-right" theme="light" />

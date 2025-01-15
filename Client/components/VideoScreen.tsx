@@ -30,7 +30,7 @@ const VideoScreen = () => {
   
 
   useEffect(() => {
-    const socketInstance = io("http://localhost:8000");
+    const socketInstance = io(`${process.env.NEXT_PUBLIC_SERVER_URL}/getKey`);
     setSocket(socketInstance);
 
     socketInstance.on("connect", () => {
@@ -142,8 +142,8 @@ const VideoScreen = () => {
   const handleSecretKey = async (secret: string) => {
     try {
       if(platform){
-
-        const response = await axios.post("http://localhost:8000/getKey", {
+        console.log(`${process.env.NEXT_PUBLIC_SERVER_URL}`)
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/getKey`, {
           key: PlatformStreamUrls[platform as keyof typeof PlatformStreamUrls] + secret,
         });
         toast.success("Key sent");
