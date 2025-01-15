@@ -8,12 +8,14 @@ import { Server as SocketIo } from "socket.io";
 const app = express();
 const server = http.createServer(app);
 
-// Define allowed origins
+// Define state object
+const state = { key: null };
+
+// Define allowed origins with proper protocols
 const allowedOrigins = [
   "http://localhost:3000",
   "https://streamsoft-streamsoft-deploy.up.railway.app",
-  "stream-soft-git-main-pranav-deshmukhs-projects.vercel.app",
-  // Add your production frontend URL if different
+  "https://stream-soft-git-main-pranav-deshmukhs-projects.vercel.app",
 ];
 
 // Configure CORS with dynamic origin checking
@@ -22,9 +24,13 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
+    // Log attempted connection origin for debugging
+    console.log("Connection attempt from origin:", origin);
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log("Origin rejected by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -47,8 +53,6 @@ const io = new SocketIo(server, {
   },
   transports: ["websocket", "polling"],
 });
-
-// Rest of your existing code...
 
 let ffmpegProcess = null;
 
@@ -110,25 +114,40 @@ const startFfmpegProcess = (key) => {
       console.error("FFmpeg process error:", error);
       ffmpegProcess = null;
     });
+
+    // Add error handling for stdin
+    ffmpegProcess.stdin.on("error", (error) => {
+      console.error("FFmpeg stdin error:", error);
+    });
   } catch (error) {
     console.error("Error starting FFmpeg:", error);
   }
 };
 
 app.post("/getKey", (req, res) => {
-  const key = req.body.key;
-  console.log("Received key:", key);
-  state.key = key;
+  try {
+    const key = req.body.key;
+    console.log("Received key:", key);
 
-  if (ffmpegProcess) {
-    console.log("Restarting FFmpeg with new key...");
-    ffmpegProcess.kill("SIGTERM");
-    startFfmpegProcess(key);
-  } else {
-    startFfmpegProcess(key);
+    if (!key) {
+      return res.status(400).json({ error: "Key is required" });
+    }
+
+    state.key = key;
+
+    if (ffmpegProcess) {
+      console.log("Restarting FFmpeg with new key...");
+      ffmpegProcess.kill("SIGTERM");
+      startFfmpegProcess(key);
+    } else {
+      startFfmpegProcess(key);
+    }
+
+    res.status(200).json({ message: "Key received successfully" });
+  } catch (error) {
+    console.error("Error in /getKey endpoint:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  res.status(200).send("Key received");
 });
 
 io.on("connection", (socket) => {
@@ -137,14 +156,16 @@ io.on("connection", (socket) => {
   socket.on("binary stream", (stream) => {
     console.log("Binary stream incoming...");
 
-    if (ffmpegProcess && ffmpegProcess.stdin.writable) {
+    if (ffmpegProcess && ffmpegProcess.stdin && ffmpegProcess.stdin.writable) {
       ffmpegProcess.stdin.write(stream, (err) => {
         if (err) {
           console.error("Error writing stream to FFmpeg:", err);
+          socket.emit("stream_error", { error: "Failed to process stream" });
         }
       });
     } else {
       console.error("FFmpeg process not available to handle the stream");
+      socket.emit("stream_error", { error: "FFmpeg process not ready" });
     }
   });
 
@@ -155,6 +176,20 @@ io.on("connection", (socket) => {
 
 app.use(express.static(path.resolve("./public")));
 
-server.listen(8000, () => {
-  console.log(`Server running on port 8000`);
+// Use PORT from environment variable or fallback to 8000
+const PORT = process.env.PORT || 8000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// Handle process termination
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received. Closing server...");
+  if (ffmpegProcess) {
+    ffmpegProcess.kill("SIGTERM");
+  }
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
 });
