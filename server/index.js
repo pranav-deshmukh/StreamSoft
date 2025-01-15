@@ -4,16 +4,17 @@ import express from "express";
 import cors from "cors";
 import { spawn } from "child_process";
 import { Server as SocketIo } from "socket.io";
-import dotenv from "dotenv";
 
 const app = express();
 const server = http.createServer(app);
-dotenv.config();
 
 // Define allowed origins
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:3000"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://streamsoft-streamsoft-deploy.up.railway.app",
+  "stream-soft-git-main-pranav-deshmukhs-projects.vercel.app",
+  // Add your production frontend URL if different
+];
 
 // Configure CORS with dynamic origin checking
 const corsOptions = {
