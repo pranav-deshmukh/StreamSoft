@@ -7,20 +7,27 @@ import { Server as SocketIo } from "socket.io";
 
 const app = express();
 const server = http.createServer(app);
+
+// Define CORS configuration
+const corsOptions = {
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"],
+  credentials: true,
+};
+
+// Apply CORS middleware with options
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const state = { key: "your-initial-key-here" };
 
+// Configure Socket.IO with the same CORS options
 const io = new SocketIo(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
-  },
+  cors: corsOptions,
 });
 
 let ffmpegProcess = null;
-app.use(cors());
 
 const createFfmpegOptions = (key) => [
   "-i",
@@ -75,8 +82,13 @@ const startFfmpegProcess = (key) => {
       console.log(`ffmpeg process exited with code: ${code}`);
       ffmpegProcess = null;
     });
+
+    ffmpegProcess.on("error", (error) => {
+      console.error("FFmpeg process error:", error);
+      ffmpegProcess = null;
+    });
   } catch (error) {
-    console.log("Error", error);
+    console.error("Error starting FFmpeg:", error);
   }
 };
 
@@ -111,6 +123,10 @@ io.on("connection", (socket) => {
     } else {
       console.error("FFmpeg process not available to handle the stream");
     }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
   });
 });
 
